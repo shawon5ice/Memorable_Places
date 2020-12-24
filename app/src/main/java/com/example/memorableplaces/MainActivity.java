@@ -2,7 +2,9 @@ package com.example.memorableplaces;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -24,10 +26,38 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        SharedPreferences sharedPreferences = getSharedPreferences("com.example.memorableplaces", Context.MODE_PRIVATE);
+
         listView = findViewById(R.id.listView);
-        places.add("Add a new place...");
+        ArrayList<String> latitudes = new ArrayList<>();
+        ArrayList<String> longitude = new ArrayList<>();
+
+        places.clear();
+        locations.clear();
+        latitudes.clear();
+        longitude.clear();
+        try {
+            places = (ArrayList<String>) ObjectSerializer.deserialize(sharedPreferences.getString("places", String.valueOf(ObjectSerializer.serialize(new ArrayList<String>()))));
+            latitudes = (ArrayList<String>) ObjectSerializer.deserialize(sharedPreferences.getString("lats", String.valueOf(ObjectSerializer.serialize(new ArrayList<String>()))));
+            longitude = (ArrayList<String>) ObjectSerializer.deserialize(sharedPreferences.getString("lons", String.valueOf(ObjectSerializer.serialize(new ArrayList<String>()))));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        if(places.size()>0 && latitudes.size()>0 && longitude.size()>0){
+            if(places.size()==latitudes.size() && places.size()==longitude.size()){
+                for (int i = 0; i < latitudes.size(); i++) {
+                    locations.add(new LatLng(Double.parseDouble(latitudes.get(i)),Double.parseDouble(longitude.get(i))));
+                }
+            }
+        }else {
+            places.add("Add a new place...");
+            locations.add(new LatLng(0,0));
+        }
+
         arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1,places);
         listView.setAdapter(arrayAdapter);
+
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -36,5 +66,6 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
     }
 }

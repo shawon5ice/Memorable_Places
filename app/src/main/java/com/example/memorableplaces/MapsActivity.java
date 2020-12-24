@@ -8,6 +8,7 @@ import androidx.fragment.app.FragmentActivity;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -27,6 +28,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -90,6 +92,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
         mMap.setOnMapLongClickListener(MapsActivity.this);
         Intent intent = getIntent();
+//        Toast.makeText(getApplicationContext(),String.valueOf(intent.getIntExtra("placeNumber",0)),Toast.LENGTH_SHORT).show();
         if(intent.getIntExtra("placeNumber",0)==0){
             locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 
@@ -143,5 +146,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         MainActivity.places.add(address);
         MainActivity.locations.add(latLng);
         MainActivity.arrayAdapter.notifyDataSetChanged();
+
+        SharedPreferences sharedPreferences = this.getSharedPreferences("com.example.memorableplaces", Context.MODE_PRIVATE);
+
+        try {
+            ArrayList<String> latitude = new ArrayList<>();
+            ArrayList<String> longitude = new ArrayList<>();
+            for(LatLng cord: MainActivity.locations){
+                latitude.add(Double.toString(cord.latitude));
+                longitude.add(Double.toString(cord.longitude));
+            }
+            sharedPreferences.edit().putString("places",ObjectSerializer.serialize(MainActivity.places)).apply();
+            sharedPreferences.edit().putString("lats",ObjectSerializer.serialize(latitude)).apply();
+            sharedPreferences.edit().putString("lons",ObjectSerializer.serialize(longitude)).apply();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
